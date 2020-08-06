@@ -7,20 +7,20 @@ describe('index.js', () => {
   const index = require('../index.js');
   const options = {
     data: mockData,
-    filePath: '/Users/beizhu/Documents/work-files/project-code/imgcook-group/dsl/plugin-directory-rax/demo',
+    filePath: '/Users/jj/Documents/framework/cookPlugin/firstTest',
     workspaceFolders: [
       {
         uri: {
           $mid: 1,
           fsPath:
-            '/Users/beizhu/Documents/work-files/project-code/imgcook-group/dsl/plugin-directory-rax',
+            '/Users/jj/Documents/framework/cookPlugin',
           external:
-            'file:///Users/beizhu/Documents/work-files/project-code/imgcook-group/dsl/plugin-directory-rax',
+            'file:///Users/jj/Documents/framework/cookPlugin',
           path:
-            '/Users/beizhu/Documents/work-files/project-code/imgcook-group/dsl/plugin-directory-rax',
+            '/Users/jj/Documents/framework/cookPlugin',
           scheme: 'file'
         },
-        name: 'demo',
+        name: 'firstTest',
         index: 0
       }
     ],
@@ -71,14 +71,14 @@ describe('index.js', () => {
         uri: {
           $mid: 1,
           fsPath:
-            '/Users/beizhu/Documents/work-files/project-code/imgcook-group/dsl/plugin-directory-rax/demo',
+            '/Users/jj/Documents/framework/cookPlugin/firstTest',
           external:
-            'file:///Users/beizhu/Documents/work-files/project-code/imgcook-group/dsl/plugin-directory-rax/demo',
+            'file:///Users/jj/Documents/framework/cookPlugin/firstTest',
           path:
-            '/Users/beizhu/Documents/work-files/project-code/imgcook-group/dsl/plugin-directory-rax/demo',
+            '/Users/jj/Documents/framework/cookPlugin/firstTest',
           scheme: 'file'
         },
-        name: 'demo',
+        name: 'firstTest',
         index: 0
       }
     ];

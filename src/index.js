@@ -8,24 +8,11 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-const util = require('./util');
-
-function replaceLocalImports(panelValue, imports, fileName) {
-  let replacement = '../';
-  if (fileName === 'index') {
-    replacement = './components/';
-  }
-  imports.forEach(item => {
-    const newItem = item.import.replace('./', replacement);
-    panelValue = panelValue.replace(item.import, newItem);
-  });
-  return panelValue;
-}
 
 function replaceCssImport(panelValue, fileName) {
   panelValue = panelValue.replace(
-    `import styles from './${fileName}.css';`,
-    `import styles from './index.css';`
+    `@import './index.response.css';`,
+    `@import '.../css/components/${fileName}/${fileName}.response.css'`
   );
   return panelValue;
 }
@@ -128,11 +115,7 @@ const pluginHandler = async options => {
   let pageName = getPageName(data);
   filePath = path.resolve(filePath);
   options.filePath = filePath;
-  // workspaceFolders 是一个数组，vscode 支持同时打开多个工作空间
-  const workspaceInfo = util.calcuWorkspaceInfo(workspaceFolders, filePath);
-  const { workspaceFolder, workspaceName } = workspaceInfo;
-  const projectType = util.calcuProjectType(workspaceFolder);
-  const exportDirs = util.calcuExportDirectory(workspaceFolder, filePath, pageName, projectType);
+  const workspaceFolder = path.resolve(workspaceFolders[0].uri.path);
 
   const panelDisplay = data.code.panelDisplay;
   let imports = [];
@@ -140,17 +123,15 @@ const pluginHandler = async options => {
     try {
       let { panelName, panelValue, panelImports = [] } = item;
       let panelPath = '';
-      const fileName = panelName.split('.')[0];
-      const fileType = util.optiFileType(workspaceFolder, panelName.split('.')[1], projectType);
-      panelName = `${fileName}.${fileType}`;
-      if (fileName !== 'index' && fileName !== 'context') {
-        panelPath = path.resolve(exportDirs.code, 'components', fileName, `index.${fileType}`);
-      } else {
-        panelPath = path.resolve(exportDirs.code, `${fileName}.${fileType}`);
-      }
-      panelValue = replaceCssImport(panelValue, fileName);
-      panelValue = replaceLocalImports(panelValue, panelImports, fileName);
-      imports = collectImports(imports, panelImports);
+      const fileType = panelName.split('.')[1];
+      
+      if (fileType == 'vue'){
+        panelPath = path.resolve(workspaceFolder, 'src', 'components', pageName, panelName.replace('index', pageName));
+        panelValue = replaceCssImport(panelValue, pageName);
+        imports = collectImports(imports, panelImports);
+      }else{
+        panelPath = path.resolve(workspaceFolder, 'css', 'components', pageName, panelName.replace('index', pageName));
+      }   
       return {
         ...item,
         panelName,
@@ -161,7 +142,8 @@ const pluginHandler = async options => {
   });
 
   // 解析是否要写入 package.json
-  if (exportDirs.packagejson) {
+  let packagejson = path.resolve(workspaceFolder, 'package.json');
+  if (packagejson && imports.length > 0) {
     const pkgPanel = calcuPackageJSONPanel(exportDirs.packagejson, imports);
     if (pkgPanel) {
       data.code.panelDisplay.push(pkgPanel);
@@ -169,17 +151,18 @@ const pluginHandler = async options => {
   }
 
   // 解析是否要写入 app.json
-  if (exportDirs.appjson) {
-    const appPanel = calcuAppJSONPanel(exportDirs.appjson, pageName);
-    if (appPanel) {
-      data.code.panelDisplay.push(appPanel);
-    }
-  }
+  //let appjson = path.resolve(workspaceFolder, 'app.json');
+  // if (appjson) {
+  //   const appPanel = calcuAppJSONPanel(appjson, pageName);
+  //   if (appPanel) {
+  //     data.code.panelDisplay.push(appPanel);
+  //   }
+  // }
 
   // 如需要开启 codediff 功能，需要返回如下两个字段
-  data.code.codeDiff = true;
+  // data.code.codeDiff = true;
   options.workspaceFolder = workspaceFolder;
-  console.log('[@imgcook/plugin-directory-rax] options:');
+  console.log('[@imgcook/plugin-relocation] options:');
   console.log(JSON.stringify(options));
   return options;
 };
@@ -187,5 +170,5 @@ const pluginHandler = async options => {
 module.exports = (...args) => {
   return pluginHandler(...args).catch(err => {
     console.log(err);
-  });
+  });   
 };

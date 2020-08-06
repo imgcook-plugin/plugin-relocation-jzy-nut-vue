@@ -4,27 +4,27 @@ const index = require('../index.js');
 const options = {
   data: mockData,
   filePath:
-    '/Users/beizhu/Documents/work-files/project-code/imgcook-group/dsl/plugin-directory-rax/demo',
+    '/Users/jj/Documents/framework/cookPlugin/firstTest',
   workspaceFolders: [
     {
       uri: {
         $mid: 1,
         fsPath:
-          '/Users/beizhu/Documents/work-files/project-code/imgcook-group/dsl/plugin-directory-rax',
+          '/Users/jj/Documents/framework/cookPlugin',
         external:
-          'file:///Users/beizhu/Documents/work-files/project-code/imgcook-group/dsl/plugin-directory-rax',
+          'file:///Users/jj/Documents/framework/cookPlugin',
         path:
-          '/Users/beizhu/Documents/work-files/project-code/imgcook-group/dsl/plugin-directory-rax',
+          '/Users/jj/Documents/framework/cookPlugin',
         scheme: 'file',
       },
-      name: 'demo',
+      name: 'firstTest',
       index: 0,
     },
   ],
   config: {
     accessId: 'xx',
     dslId: 41,
-    generator: ['@imgcook/generator-react'],
+    generator: ['@imgcook/generator-vue-jzynut'],
     plugin: ['@imgcook/plugin-images'],
     uploadUrl: '',
     value: '17679',

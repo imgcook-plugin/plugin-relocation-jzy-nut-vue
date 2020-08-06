@@ -1,24 +1,24 @@
 {
-  "name": "@imgcook/plugin-directory-rax",
-  "version": "0.0.7",
-  "description": "compute code directory by rax project type",
+  "name": "@imgcook/plugin-relocation",
+  "version": "0.0.0",
+  "description": "compute code directory by vue project type",
   "main": "index.js",
   "scripts": {
-    "test": "nyc --reporter=text mocha test/__test__.js"
+    "test": "mocha test/__test__.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/imgcook-plugin/plugin-directory-rax.git"
+    "url": "git+https://github.com/imgcook-plugin/plugin-relocation-jzy-nut-vue.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/imgcook-plugin/plugin-directory-rax/issues"
+    "url": "https://github.com/imgcook-plugin/plugin-relocation-jzy-nut-vue/issues"
   },
   "publishConfig": {
     "access": "public"
   },
-  "homepage": "https://github.com/imgcook-plugin/plugin-directory-rax#readme",
+  "homepage": "https://github.com/imgcook-plugin/plugin-relocation-jzy-nut-vue#readme",
   "devDependencies": {
     "chai": "^4.2.0",
     "nyc": "^14.1.1"
