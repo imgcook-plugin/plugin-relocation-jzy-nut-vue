@@ -1,6 +1,6 @@
 {
   "name": "@imgcook/plugin-relocation",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "compute code directory by vue project type",
   "main": "index.js",
   "scripts": {
