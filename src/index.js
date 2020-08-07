@@ -125,13 +125,15 @@ const pluginHandler = async options => {
       let panelPath = '';
       const fileType = panelName.split('.')[1];
       
+      panelName =  panelName.replace('index', pageName);
       if (fileType == 'vue'){
-        panelPath = path.resolve(workspaceFolder, 'src', 'components', pageName, panelName.replace('index', pageName));
+        panelPath = path.resolve(workspaceFolder, 'src', 'components', pageName, panelName);
         panelValue = replaceCssImport(panelValue, pageName);
         imports = collectImports(imports, panelImports);
       }else{
-        panelPath = path.resolve(workspaceFolder, 'css', 'components', pageName, panelName.replace('index', pageName));
-      }   
+        panelPath = path.resolve(workspaceFolder, 'css', 'components', pageName, panelName);
+      }
+        
       return {
         ...item,
         panelName,
