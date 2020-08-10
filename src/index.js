@@ -111,6 +111,7 @@ function calcuAppJSONPanel(appJSONPath, pageName) {
 }
 
 const pluginHandler = async options => {
+  console.log(JSON.stringify(options));
   let { filePath, workspaceFolders, data } = options;
   let pageName = getPageName(data);
   filePath = path.resolve(filePath);
