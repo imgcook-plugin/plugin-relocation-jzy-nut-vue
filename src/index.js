@@ -111,16 +111,17 @@ function calcuAppJSONPanel(appJSONPath, pageName) {
 }
 
 const pluginHandler = async options => {
-  console.log(JSON.stringify(options));
-  let { filePath, workspaceFolders, data } = options;
-  let pageName = getPageName(data);
-  filePath = path.resolve(filePath);
-  options.filePath = filePath;
-  const workspaceFolder = path.resolve(workspaceFolders[0].uri.path);
+  let { data } = options;
+  const { filePath, config } = options;
+  let configPathArray = filePath.split('/');
+  let configPath = configPathArray[configPathArray.length -1];
+  
+  let pageName = configPath;//getPageName(data);
+  const workspaceFolder = path.resolve(filePath.replace('/'+configPath, ''));
 
   const panelDisplay = data.code.panelDisplay;
   let imports = [];
-  data.code.panelDisplay = panelDisplay.map(item => {
+  data.code.panelDisplay = await panelDisplay.map(async item => {
     try {
       let { panelName, panelValue, panelImports = [] } = item;
       let panelPath = '';
@@ -128,12 +129,17 @@ const pluginHandler = async options => {
       
       panelName =  panelName.replace('index', pageName);
       if (fileType == 'vue'){
-        panelPath = path.resolve(workspaceFolder, 'src', 'components', pageName, panelName);
+        panelPath = path.resolve(workspaceFolder, 'src', 'components', pageName);
         panelValue = replaceCssImport(panelValue, pageName);
         imports = collectImports(imports, panelImports);
       }else{
-        panelPath = path.resolve(workspaceFolder, 'css', 'components', pageName, panelName);
+        panelPath = path.resolve(workspaceFolder, 'css', 'components', pageName);
       }
+
+      if (!fs.existsSync(panelPath)) {
+        fs.mkdirSync(panelPath, { recursive: true });
+      }
+      await fs.writeFile(path.resolve(panelPath, panelName), panelValue, 'utf8');
         
       return {
         ...item,
@@ -141,7 +147,9 @@ const pluginHandler = async options => {
         panelValue,
         panelPath
       };
-    } catch (error) {}
+    } catch (error) {
+      console.error(error);
+    }
   });
 
   // 解析是否要写入 package.json
@@ -162,9 +170,14 @@ const pluginHandler = async options => {
   //   }
   // }
 
+  // delete tempfiles
+  if (fs.existsSync(filePath)) {
+    fs.rmdirSync(filePath, { recursive: true });
+  }
+
   // 如需要开启 codediff 功能，需要返回如下两个字段
   // data.code.codeDiff = true;
-  options.workspaceFolder = workspaceFolder;
+  options.filePath = workspaceFolder;
   console.log('[@imgcook/plugin-relocation] options:');
   console.log(JSON.stringify(options));
   return options;
