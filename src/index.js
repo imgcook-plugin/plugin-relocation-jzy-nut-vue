@@ -12,7 +12,7 @@ const path = require('path');
 function replaceCssImport(panelValue, fileName) {
   panelValue = panelValue.replace(
     `@import './index.response.css';`,
-    `@import '.../css/components/${fileName}/${fileName}.response.css'`
+    `@import '../../assets/css/components/${fileName}/${fileName}.response.css';`
   );
   return panelValue;
 }
