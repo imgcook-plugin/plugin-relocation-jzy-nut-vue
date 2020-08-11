@@ -141,7 +141,7 @@ const pluginHandler = async options => {
           panelName = firstUpperCase(panelName);
 
           // 添加到Route.js
-          addToRoute(workspaceFolder, pageName);
+          addToRoute(workspaceFolder, firstUpperCase(pageName));
         }else{
           panelPath = path.resolve(workspaceFolder, 'src', 'assets', 'css', 'components', pageName);
         }
@@ -184,14 +184,15 @@ const pluginHandler = async options => {
     if (fs.existsSync(filePath)) {
       fs.rmdirSync(filePath, { recursive: true });
     } 
+
+    // 如需要开启 codediff 功能，需要返回如下两个字段
+    // data.code.codeDiff = true;
+    options.filePath = workspaceFolder;
   }catch (error) {
     console.error(error);
     throw error;
   }
 
-  // 如需要开启 codediff 功能，需要返回如下两个字段
-  // data.code.codeDiff = true;
-  options.filePath = workspaceFolder;
   console.log('[@imgcook/plugin-relocation] end');
   return options;
 };
