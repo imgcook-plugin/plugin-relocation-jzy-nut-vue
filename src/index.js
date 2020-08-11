@@ -77,109 +77,122 @@ function calcuPackageJSONPanel(packageJSONPath, imports) {
   }
 }
 
-/**
- * Rax 1.0 多页应用 && 单页应用源码生成更新路由信息 app.json
- * @param {*} appJSONPath
- * @param {*} pageName
- */
-function calcuAppJSONPanel(appJSONPath, pageName) {
-  if (!fs.pathExistsSync(appJSONPath)) {
+function firstUpperCase(str) {  
+  return str.toLowerCase().replace(/( |^)[a-z]/g, (L) => L.toUpperCase());  
+}  
+
+function addToRoute(workspaceFolder, pageName){
+  let routeJSONPath = path.resolve(workspaceFolder, 'src','router', 'index.js')
+  if (!fs.pathExistsSync(routeJSONPath)) {
     return null;
   }
+
   try {
-    const json = JSON.parse(fs.readFileSync(appJSONPath).toString());
-    if (!json.routes) {
-      json.routes = [];
+    let routeContex = fs.readFileSync(routeJSONPath).toString(); 
+    let routeJson = routeContex.match(/(?<=routes).*(?=\])/s);
+    if (!routeJson){
+      console.log("can't find routes");     
+      return null;
     }
-    const routesPath = json.routes.map(i => i.path);
-    if (routesPath.indexOf(`/${pageName}`) === -1) {
-      json.routes.push({
-        path: `/${pageName}`,
-        source: `pages/${pageName}/index`
-      });
-      return {
-        panelPath: appJSONPath,
-        panelName: 'app.json',
-        panelValue: `${JSON.stringify(json, null, 2)}\n`,
-        panelType: 'json'
-      };
+    
+    routeJson = routeJson[0];
+    if (routeJson.indexOf(`${pageName}`) != -1){
+      console.log(`${pageName} also exist.`);
+      return null;
     }
+
+    let lcPageName = pageName.toLowerCase();
+    routeJson = `${routeJson.replace(/\r\n+$/,'')},\r\n  {\r\n    path: "/${lcPageName}",\r\n    name: "${pageName}",\r\n    component: () =>\r\n      import("../components/${lcPageName}/${pageName}.vue")\r\n  }\r\n`
+    routeContex = routeContex.replace(/(?<=const routes \=).*(?=\])/s, routeJson);
+    
+    fs.writeFileSync(routeJSONPath, routeContex, 'utf8');
+      
     return null;
   } catch (e) {
+    console.error(e);
     return null;
   }
 }
 
 const pluginHandler = async options => {
-  let { data } = options;
-  const { filePath, config } = options;
-  let configPathArray = filePath.split('/');
-  let configPath = configPathArray[configPathArray.length -1];
-  
-  let pageName = configPath;//getPageName(data);
-  const workspaceFolder = path.resolve(filePath.replace('/'+configPath, ''));
+  console.log('[@imgcook/plugin-relocation] start');
+  try{
+    let { data } = options;
+    const { filePath, config } = options;
+    let configPathArray = filePath.split('/');
+    let configPath = configPathArray[configPathArray.length -1];
+    
+    let pageName = configPath;//getPageName(data);
+    const workspaceFolder = path.resolve(filePath.replace('/'+configPath, ''));
 
-  const panelDisplay = data.code.panelDisplay;
-  let imports = [];
-  data.code.panelDisplay = await panelDisplay.map(async item => {
-    try {
-      let { panelName, panelValue, panelImports = [] } = item;
-      let panelPath = '';
-      const fileType = panelName.split('.')[1];
-      
-      panelName =  panelName.replace('index', pageName);
-      if (fileType == 'vue'){
-        panelPath = path.resolve(workspaceFolder, 'src', 'components', pageName);
-        panelValue = replaceCssImport(panelValue, pageName);
-        imports = collectImports(imports, panelImports);
-      }else{
-        panelPath = path.resolve(workspaceFolder, 'src', 'assets', 'css', 'components', pageName);
-      }
-
-      if (!fs.existsSync(panelPath)) {
-        fs.mkdirSync(panelPath, { recursive: true });
-      }
-      await fs.writeFile(path.resolve(panelPath, panelName), panelValue, 'utf8');
+    const panelDisplay = data.code.panelDisplay;
+    let imports = [];
+    data.code.panelDisplay = await panelDisplay.map(async item => {
+      try {
+        let { panelName, panelValue, panelImports = [] } = item;
+        let panelPath = '';
+        const fileType = panelName.split('.')[1];
         
-      return {
-        ...item,
-        panelName,
-        panelValue,
-        panelPath
-      };
-    } catch (error) {
-      console.error(error);
+        panelName =  panelName.replace('index', pageName);
+        if (fileType == 'vue'){
+          panelPath = path.resolve(workspaceFolder, 'src', 'components', pageName);
+          panelValue = replaceCssImport(panelValue, pageName);
+          imports = collectImports(imports, panelImports);
+          panelName = firstUpperCase(panelName);
+
+          // 添加到Route.js
+          addToRoute(workspaceFolder, pageName);
+        }else{
+          panelPath = path.resolve(workspaceFolder, 'src', 'assets', 'css', 'components', pageName);
+        }
+
+        if (!fs.existsSync(panelPath)) {
+          fs.mkdirSync(panelPath, { recursive: true });
+        }
+        await fs.writeFile(path.resolve(panelPath, panelName), panelValue, 'utf8');
+          
+        return {
+          ...item,
+          panelName,
+          panelValue,
+          panelPath
+        };
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    // 解析是否要写入 package.json
+    let packagejson = path.resolve(workspaceFolder, 'package.json');
+    if (packagejson && imports.length > 0) {
+      const pkgPanel = calcuPackageJSONPanel(exportDirs.packagejson, imports);
+      if (pkgPanel) {
+        data.code.panelDisplay.push(pkgPanel);
+      }
     }
-  });
 
-  // 解析是否要写入 package.json
-  let packagejson = path.resolve(workspaceFolder, 'package.json');
-  if (packagejson && imports.length > 0) {
-    const pkgPanel = calcuPackageJSONPanel(exportDirs.packagejson, imports);
-    if (pkgPanel) {
-      data.code.panelDisplay.push(pkgPanel);
-    }
-  }
+    // 解析是否要写入 app.json
+    //let appjson = path.resolve(workspaceFolder, 'app.json');
+    // if (appjson) {
+    //   const appPanel = calcuAppJSONPanel(appjson, pageName);
+    //   if (appPanel) {
+    //     data.code.panelDisplay.push(appPanel);
+    //   }
+    // }
 
-  // 解析是否要写入 app.json
-  //let appjson = path.resolve(workspaceFolder, 'app.json');
-  // if (appjson) {
-  //   const appPanel = calcuAppJSONPanel(appjson, pageName);
-  //   if (appPanel) {
-  //     data.code.panelDisplay.push(appPanel);
-  //   }
-  // }
-
-  // delete tempfiles
-  if (fs.existsSync(filePath)) {
-    fs.rmdirSync(filePath, { recursive: true });
+    // delete tempfiles
+    if (fs.existsSync(filePath)) {
+      fs.rmdirSync(filePath, { recursive: true });
+    } 
+  }catch (error) {
+    console.error(error);
+    throw error;
   }
 
   // 如需要开启 codediff 功能，需要返回如下两个字段
   // data.code.codeDiff = true;
   options.filePath = workspaceFolder;
-  console.log('[@imgcook/plugin-relocation] options:');
-  console.log(JSON.stringify(options));
+  console.log('[@imgcook/plugin-relocation] end');
   return options;
 };
 

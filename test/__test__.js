@@ -7,7 +7,7 @@ describe('index.js', () => {
   const index = require('../index.js');
   const options = {
     data: mockData,
-    filePath: '/Users/jj/Documents/framework/cookPlugin/firstTest',
+    filePath: '/Users/jj/Documents/framework/cookPlugin/third/rank',
     workspaceFolders: [
       {
         uri: {
