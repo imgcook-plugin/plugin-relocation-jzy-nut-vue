@@ -103,7 +103,7 @@ function addToRoute(workspaceFolder, pageName){
 
     let lcPageName = pageName.toLowerCase();
     routeJson = `${routeJson.replace(/\r\n+$/,'')},\r\n  {\r\n    path: "/${lcPageName}",\r\n    name: "${pageName}",\r\n    component: () =>\r\n      import("../components/${lcPageName}/${pageName}.vue")\r\n  }\r\n`
-    routeContex = routeContex.replace(/(?<=const routes \=).*(?=\])/s, routeJson);
+    routeContex = routeContex.replace(/(?<=routes).*(?=\])/s, routeJson);
     
     fs.writeFileSync(routeJSONPath, routeContex, 'utf8');
       
