@@ -133,7 +133,7 @@ const pluginHandler = async options => {
         panelValue = replaceCssImport(panelValue, pageName);
         imports = collectImports(imports, panelImports);
       }else{
-        panelPath = path.resolve(workspaceFolder, 'css', 'components', pageName);
+        panelPath = path.resolve(workspaceFolder, 'src', 'assets', 'css', 'components', pageName);
       }
 
       if (!fs.existsSync(panelPath)) {
