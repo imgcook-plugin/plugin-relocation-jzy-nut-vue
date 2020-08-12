@@ -12,7 +12,7 @@ const path = require('path');
 function replaceCssImport(panelValue, fileName) {
   panelValue = panelValue.replace(
     `@import './index.response.css';`,
-    `@import '../../assets/css/components/${fileName}/${fileName}.response.css';`
+    `@import './${fileName}.response.css';`
   );
   return panelValue;
 }
@@ -102,7 +102,7 @@ function addToRoute(workspaceFolder, pageName){
     }
 
     let lcPageName = pageName.toLowerCase();
-    routeJson = `${routeJson.replace(/\r\n+$/,'')},\r\n  {\r\n    path: "/${lcPageName}",\r\n    name: "${pageName}",\r\n    component: () =>\r\n      import("../components/${lcPageName}/${pageName}.vue")\r\n  }\r\n`
+    routeJson = `${routeJson.replace(/\r\n+$/,'')},\r\n  {\r\n    path: "/${lcPageName}",\r\n    name: "${pageName}",\r\n    component: () =>\r\n      import("../views/${lcPageName}/${pageName}.vue")\r\n  }\r\n`
     routeContex = routeContex.replace(/(?<=routes).*(?=\])/s, routeJson);
     
     fs.writeFileSync(routeJSONPath, routeContex, 'utf8');
@@ -135,7 +135,7 @@ const pluginHandler = async options => {
         
         panelName =  panelName.replace('index', pageName);
         if (fileType == 'vue'){
-          panelPath = path.resolve(workspaceFolder, 'src', 'components', pageName);
+          panelPath = path.resolve(workspaceFolder, 'src', 'views', pageName);
           panelValue = replaceCssImport(panelValue, pageName);
           imports = collectImports(imports, panelImports);
           panelName = firstUpperCase(panelName);
@@ -143,7 +143,7 @@ const pluginHandler = async options => {
           // 添加到Route.js
           addToRoute(workspaceFolder, firstUpperCase(pageName));
         }else{
-          panelPath = path.resolve(workspaceFolder, 'src', 'assets', 'css', 'components', pageName);
+          panelPath = path.resolve(workspaceFolder, 'src', 'views', pageName);
         }
 
         if (!fs.existsSync(panelPath)) {
