@@ -17,14 +17,6 @@ function replaceCssImport(panelValue, fileName) {
   return panelValue;
 }
 
-function collectImports(imports, panelImports) {
-  return panelImports
-    .filter(item => {
-      return item.import.indexOf('./') === -1 && item.import.indexOf('../') === -1;
-    })
-    .concat(imports);
-}
-
 function getPageName(data) {
   if (data && data.moduleData) {
     if (data.moduleData.name) {
@@ -41,9 +33,9 @@ function getPageName(data) {
  * @param {*} packageJSONPath
  * @param {*} imports
  */
-function calcuPackageJSONPanel(packageJSONPath, imports) {
+function addDepandencePackage(packageJSONPath, imports) {
   if (!fs.pathExistsSync(packageJSONPath)) {
-    return null;
+    return;
   }
   let flag = false;
   try {
@@ -63,17 +55,10 @@ function calcuPackageJSONPanel(packageJSONPath, imports) {
       }
     });
     if (flag) {
-      return {
-        panelPath: packageJSONPath,
-        panelName: 'package.json',
-        panelValue: `${JSON.stringify(json, null, 2)}\n`,
-        panelType: 'json'
-      };
-    } else {
-      return null;
-    }
+      fs.writeFileSync(packageJSONPath, `${JSON.stringify(json, null, 2)}\n`, 'utf8');
+    } 
   } catch (e) {
-    return null;
+    console.error(e);
   }
 }
 
@@ -137,9 +122,8 @@ const pluginHandler = async options => {
         if (fileType == 'vue'){
           panelPath = path.resolve(workspaceFolder, 'src', 'views', pageName);
           panelValue = replaceCssImport(panelValue, pageName);
-          imports = collectImports(imports, panelImports);
           panelName = firstUpperCase(panelName);
-
+          imports = JSON.parse(panelImports);
           // 添加到Route.js
           addToRoute(workspaceFolder, firstUpperCase(pageName));
         }else{
@@ -165,10 +149,7 @@ const pluginHandler = async options => {
     // 解析是否要写入 package.json
     let packagejson = path.resolve(workspaceFolder, 'package.json');
     if (packagejson && imports.length > 0) {
-      const pkgPanel = calcuPackageJSONPanel(exportDirs.packagejson, imports);
-      if (pkgPanel) {
-        data.code.panelDisplay.push(pkgPanel);
-      }
+      addDepandencePackage(packagejson, imports);   
     }
 
     // 解析是否要写入 app.json
